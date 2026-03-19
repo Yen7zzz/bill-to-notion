@@ -1,5 +1,6 @@
 import imaplib
 import email
+import email.header
 import logging
 from dataclasses import dataclass
 from typing import Iterator
@@ -7,6 +8,19 @@ from typing import Iterator
 log = logging.getLogger(__name__)
 
 IMAP_HOST = "imap.gmail.com"
+
+
+def _decode_filename(raw: str | None) -> str | None:
+    if raw is None:
+        return None
+    parts = email.header.decode_header(raw)
+    decoded = []
+    for part, charset in parts:
+        if isinstance(part, bytes):
+            decoded.append(part.decode(charset or "utf-8", errors="replace"))
+        else:
+            decoded.append(part)
+    return "".join(decoded)
 
 @dataclass
 class MailAttachment:
@@ -50,9 +64,13 @@ class GmailClient:
             log.info(f"[{sender_email}] UID {uid} subject: {msg.get('Subject')}")
             for part in msg.walk():
                 ct = part.get_content_type()
-                filename = part.get_filename()
+                filename = _decode_filename(part.get_filename())
                 log.info(f"  part content-type={ct!r} filename={filename!r}")
-                if ct == "application/pdf":
+                if ct == "application/pdf" or (
+                    ct == "application/octet-stream"
+                    and filename
+                    and filename.lower().endswith(".pdf")
+                ):
                     yield MailAttachment(
                         uid=uid,
                         sender=sender_email,

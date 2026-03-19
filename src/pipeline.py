@@ -9,6 +9,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger(__name__)
 
 def run():
+    print("Pipeline started", flush=True)
+    log.info("Pipeline started")
     notion = NotionWriter()
 
     with GmailClient(os.environ["EMAIL_USER"], os.environ["EMAIL_PASS"]) as gmail:

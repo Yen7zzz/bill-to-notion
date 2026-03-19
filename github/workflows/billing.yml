@@ -1,0 +1,28 @@
+name: Bank Statement Pipeline
+
+on:
+  schedule:
+    - cron: '0 10 15 * *'  # 每月15號 UTC 10:00（台灣 18:00）
+  workflow_dispatch:         # 手動觸發
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - run: pip install pikepdf pdfplumber notion-client
+
+      - name: Run pipeline
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          ID_NUMBER: ${{ secrets.ID_NUMBER }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: python -m src.pipeline

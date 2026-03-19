@@ -24,12 +24,17 @@ class GmailClient:
     def __enter__(self):
         self._conn = imaplib.IMAP4_SSL(IMAP_HOST)
         self._conn.login(self._user, self._password)
-        self._conn.select('"[Gmail]/All Mail"')
+        status, detail = self._conn.select('"[Gmail]/所有郵件"')
+        if status != "OK":
+            raise RuntimeError(f"IMAP SELECT failed: {detail}")
         return self
 
     def __exit__(self, *args):
         if self._conn:
-            self._conn.close()
+            try:
+                self._conn.close()
+            except Exception:
+                pass
             self._conn.logout()
 
     def fetch_unseen_pdfs(self, sender_email: str) -> Iterator[MailAttachment]:

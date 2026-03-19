@@ -1,7 +1,10 @@
 import imaplib
 import email
+import logging
 from dataclasses import dataclass
 from typing import Iterator
+
+log = logging.getLogger(__name__)
 
 IMAP_HOST = "imap.gmail.com"
 
@@ -21,7 +24,7 @@ class GmailClient:
     def __enter__(self):
         self._conn = imaplib.IMAP4_SSL(IMAP_HOST)
         self._conn.login(self._user, self._password)
-        self._conn.select("INBOX")
+        self._conn.select('"[Gmail]/All Mail"')
         return self
 
     def __exit__(self, *args):
@@ -31,6 +34,7 @@ class GmailClient:
 
     def fetch_unseen_pdfs(self, sender_email: str) -> Iterator[MailAttachment]:
         _, uids = self._conn.uid("search", None, f'(UNSEEN FROM "{sender_email}")')
+        log.info(f"[{sender_email}] IMAP search returned UIDs: {uids[0]}")
         if not uids[0]:
             return
 

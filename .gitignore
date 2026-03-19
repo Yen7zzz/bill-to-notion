@@ -1,0 +1,6 @@
+__pycache__/
+*.pdf
+*.pyc
+.env
+.idea/
+ts.py

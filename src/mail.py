@@ -24,11 +24,32 @@ class GmailClient:
     def __enter__(self):
         self._conn = imaplib.IMAP4_SSL(IMAP_HOST)
         self._conn.login(self._user, self._password)
-        self._conn._encoding = "utf-8"
-        status, detail = self._conn.select('[Gmail]/所有郵件')
+
+        _, folder_list = self._conn.list()
+        log.info("Available IMAP folders:")
+        for entry in folder_list:
+            log.info(f"  {entry}")
+
+        all_mail = self._find_all_mail_folder(folder_list)
+        log.info(f"Selecting folder: {all_mail!r}")
+        status, detail = self._conn.select(all_mail)
         if status != "OK":
-            raise RuntimeError(f"IMAP SELECT failed: {detail}")
+            raise RuntimeError(f"IMAP SELECT failed ({all_mail!r}): {detail}")
         return self
+
+    @staticmethod
+    def _find_all_mail_folder(folder_list: list) -> bytes:
+        """Return the raw folder name bytes for All Mail from the server's LIST response."""
+        for entry in folder_list:
+            if isinstance(entry, bytes) and b"\\All" in entry:
+                # LIST entry format: (<flags>) "<delimiter>" <name>
+                # The name is everything after the last space-delimited token following the delimiter
+                parts = entry.split(b'"')
+                if len(parts) >= 3:
+                    return parts[-1].strip()
+                # fallback: last space-separated token
+                return entry.rsplit(b" ", 1)[-1].strip()
+        raise RuntimeError("Could not find All Mail folder in IMAP LIST response")
 
     def __exit__(self, *args):
         if self._conn:

@@ -47,12 +47,16 @@ class GmailClient:
             _, data = self._conn.uid("fetch", uid, "(RFC822)")
             msg = email.message_from_bytes(data[0][1])
 
+            log.info(f"[{sender_email}] UID {uid} subject: {msg.get('Subject')}")
             for part in msg.walk():
-                if part.get_content_type() == "application/pdf":
+                ct = part.get_content_type()
+                filename = part.get_filename()
+                log.info(f"  part content-type={ct!r} filename={filename!r}")
+                if ct == "application/pdf":
                     yield MailAttachment(
                         uid=uid,
                         sender=sender_email,
-                        filename=part.get_filename() or "statement.pdf",
+                        filename=filename or "statement.pdf",
                         data=part.get_payload(decode=True),
                     )
 

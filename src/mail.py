@@ -25,7 +25,7 @@ class GmailClient:
         self._conn = imaplib.IMAP4_SSL(IMAP_HOST)
         self._conn.login(self._user, self._password)
         self._conn._encoding = "utf-8"
-        status, detail = self._conn.select('"[Gmail]/所有郵件"')
+        status, detail = self._conn.select('[Gmail]/所有郵件')
         if status != "OK":
             raise RuntimeError(f"IMAP SELECT failed: {detail}")
         return self

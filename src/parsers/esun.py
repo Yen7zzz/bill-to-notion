@@ -19,6 +19,7 @@ class ESunParser(BaseParser):
     def parse(self, pdf: pdfplumber.PDF) -> list[Transaction]:
         full_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
         year = self._get_year(full_text)
+        bill_month = self._get_bill_month(full_text)
         results = []
 
         for m in self._TXN.finditer(full_text):
@@ -29,8 +30,14 @@ class ESunParser(BaseParser):
                 continue
 
             month, day = (int(x) for x in spend_date_str.split("/"))
+            if month > bill_month + 1:
+                txn_year = year - 1
+            elif bill_month == 12 and month == 1:
+                txn_year = year + 1
+            else:
+                txn_year = year
             results.append(Transaction(
-                date=date(year, month, day),
+                date=date(txn_year, month, day),
                 description=desc,
                 amount=Decimal(amount_str.replace(",", "")),
                 bank=self.bank_name,
@@ -42,3 +49,7 @@ class ESunParser(BaseParser):
     def _get_year(self, text: str) -> int:
         m = self._HEADER_YEAR.search(text)
         return int(m.group(1)) + 1911 if m else date.today().year
+
+    def _get_bill_month(self, text: str) -> int:
+        m = self._HEADER_YEAR.search(text)
+        return int(m.group(2)) if m else date.today().month

@@ -45,7 +45,12 @@ class SinoPacParser(BaseParser):
                 continue
 
             month, day = (int(x) for x in spend_date_str.split("/"))
-            txn_year = year + 1 if (bill_month == 12 and month == 1) else year
+            if month > bill_month + 1:
+                txn_year = year - 1
+            elif bill_month == 12 and month == 1:
+                txn_year = year + 1
+            else:
+                txn_year = year
 
             results.append(Transaction(
                 date=date(txn_year, month, day),

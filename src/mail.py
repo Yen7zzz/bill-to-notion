@@ -55,7 +55,7 @@ class GmailClient:
         criteria = f'(UNSEEN FROM "{sender_email}")'
         if subject_filter:
             criteria = f'(UNSEEN FROM "{sender_email}" SUBJECT "{subject_filter}")'
-        _, uids = self._conn.uid("search", None, criteria.encode("utf-8"))
+        _, uids = self._conn.uid("search", "UTF-8", criteria.encode("utf-8"))
         log.info(f"[{sender_email}] IMAP search returned UIDs: {uids[0]}")
         if not uids[0]:
             return

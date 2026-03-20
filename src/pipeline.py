@@ -14,10 +14,10 @@ def run():
     notion = NotionWriter()
 
     with GmailClient(os.environ["EMAIL_USER"], os.environ["EMAIL_PASS"]) as gmail:
-        for sender, (parser_cls, subject_filter) in SENDER_MAP.items():
+        for sender, (parser_cls, filename_contains) in SENDER_MAP.items():
             parser = parser_cls()
 
-            for attachment in gmail.fetch_unseen_pdfs(sender, subject_filter=subject_filter):
+            for attachment in gmail.fetch_unseen_pdfs(sender, filename_contains=filename_contains):
                 log.info(f"[{sender}] Found: {attachment.filename}")
                 try:
                     pdf = unlock_pdf(attachment.data, os.environ["ID_NUMBER"])

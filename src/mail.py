@@ -51,11 +51,8 @@ class GmailClient:
                 pass
             self._conn.logout()
 
-    def fetch_unseen_pdfs(self, sender_email: str, subject_filter: str | None = None) -> Iterator[MailAttachment]:
-        criteria = f'(UNSEEN FROM "{sender_email}")'
-        if subject_filter:
-            criteria = f'(UNSEEN FROM "{sender_email}" SUBJECT "{subject_filter}")'
-        _, uids = self._conn.uid("search", "UTF-8", criteria.encode("utf-8"))
+    def fetch_unseen_pdfs(self, sender_email: str, filename_contains: str | None = None) -> Iterator[MailAttachment]:
+        _, uids = self._conn.uid("search", None, f'(UNSEEN FROM "{sender_email}")')
         log.info(f"[{sender_email}] IMAP search returned UIDs: {uids[0]}")
         if not uids[0]:
             return
@@ -74,6 +71,8 @@ class GmailClient:
                     and filename
                     and filename.lower().endswith(".pdf")
                 ):
+                    if filename_contains and (not filename or filename_contains not in filename):
+                        continue
                     yield MailAttachment(
                         uid=uid,
                         sender=sender_email,

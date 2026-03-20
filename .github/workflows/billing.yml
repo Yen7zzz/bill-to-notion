@@ -2,7 +2,7 @@ name: Bank Statement Pipeline
 
 on:
   schedule:
-    - cron: '0 10 15 * *'  # 每月15號 UTC 10:00（台灣 18:00）
+    - cron: '0 10 * * *'  # 每天 UTC 10:00（台灣 18:00）
   workflow_dispatch:         # 手動觸發
 
 jobs:

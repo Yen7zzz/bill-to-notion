@@ -1,19 +1,19 @@
-import os
-from notion_client import Client
-from datetime import date
-from decimal import Decimal
-from src.parsers.base import Transaction
-from src.notion_writer import NotionWriter
+# inspect_bank.py
+import pikepdf
+import pdfplumber
+from io import BytesIO
 
-os.environ["NOTION_TOKEN"] = "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"
-os.environ["NOTION_DATABASE_ID"] = "2c640bb744338073b553c65034bc755c"
+PDF_PATH = r"C:\Users\2993\Downloads\永豐銀行2026年02月份-電子綜合對帳單.pdf"
+PASSWORD = "E125353141"
 
-writer = NotionWriter()
-test_txn = Transaction(
-    date=date(2026, 1, 19),
-    description="測試寫入",
-    amount=Decimal("100"),
-    payment_page_id="2c640bb7-4433-801c-a31e-fe0c3d251f46",  # sport
-)
-writer.write(test_txn)
-print("Done")
+buf = BytesIO()
+with pikepdf.open(PDF_PATH, password=PASSWORD) as p:
+    p.save(buf)
+buf.seek(0)
+
+pdf = pdfplumber.open(buf)
+for i, page in enumerate(pdf.pages):
+    print(f"=== PAGE {i} ===")
+    text = page.extract_text()
+    print(text)
+    print()

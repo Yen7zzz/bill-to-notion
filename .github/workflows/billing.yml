@@ -25,5 +25,6 @@ jobs:
           ID_NUMBER: ${{ secrets.ID_NUMBER }}
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          NOTION_BALANCE_DB_ID: ${{ secrets.NOTION_BALANCE_DB_ID }}
           PYTHONUNBUFFERED: "1"
         run: python -m src.pipeline
